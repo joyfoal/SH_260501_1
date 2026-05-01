@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PRODOO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Jua&display=swap"
+    rel="stylesheet"
+  />
   <style>
     :root {
       --bg: #f4f9f4;
@@ -23,6 +29,21 @@
       --cursor-pointer: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%232d6a4f' stroke='%23ffffff' stroke-width='2'/%3E%3C/svg%3E")
           12 12,
         pointer;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0f1612;
+      --surface: #1a2420;
+      --text: #e6f0e8;
+      --muted: #8aa896;
+      --line: #2c3d34;
+      --accent: #5cb88a;
+      --accent-soft: #24332a;
+      --today-ring: #7dcea0;
+      --selected-fill: #2d4f3f;
+      --danger: #e85d5d;
+      --shadow: 0 4px 28px rgba(0, 0, 0, 0.45);
     }
 
     *,
@@ -82,15 +103,17 @@
     }
 
     .hero h1 {
-      margin: 0 0 12px;
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
+      margin: 0;
+      font-family: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+      font-size: clamp(2.05rem, 9vw, 2.55rem);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: #4aad7a;
     }
 
     .praise-host {
       position: relative;
-      min-height: 36px;
+      min-height: 0;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -135,8 +158,19 @@
       transform: translateX(-50%) translateY(-4px);
     }
 
+    .hero-tagline {
+      margin: 0 10px 0;
+      padding-bottom: 14px;
+      font-family: "Jua", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+      font-size: 1.02rem;
+      font-weight: 400;
+      line-height: 1.55;
+      letter-spacing: 0.05em;
+      color: #5a9272;
+    }
+
     .tree-block {
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     .tree-wrap {
@@ -543,6 +577,15 @@
       display: none !important;
     }
 
+    .repeat-editor-dock {
+      width: 100%;
+    }
+
+    #taskList .repeat-editor {
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+
     .repeat-editor-title {
       margin: 0;
       font-size: 0.88rem;
@@ -883,6 +926,52 @@
       border-color: var(--accent);
     }
 
+    .settings-prefs-block {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .settings-theme-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .settings-lang-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .settings-chip-btn {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .settings-chip-btn:hover {
+      background: var(--accent-soft);
+    }
+
+    .settings-chip-btn--on {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .settings-theme-toggle {
+      width: 100%;
+    }
+
     .settings-collapsible[hidden] {
       display: none !important;
     }
@@ -1036,6 +1125,7 @@
       <div class="praise-host">
         <div id="praiseBubble" class="praise-bubble" role="status" aria-live="polite"></div>
       </div>
+      <p id="heroTagline" class="hero-tagline"></p>
       <div class="tree-block">
         <span class="tree-wrap" id="treeWrap" aria-hidden="true">
           <span class="growth-frame" id="growthFrame">
@@ -1065,70 +1155,73 @@
       <p id="otherDayLabel" class="other-day-label" hidden></p>
 
       <div id="moveHint" class="move-hint" hidden>
-        <span>달력에서 옮길 날짜를 눌러 주세요</span>
+        <span id="moveHintText">달력에서 옮길 날짜를 눌러 주세요</span>
         <button type="button" id="moveHintCancel">취소</button>
-      </div>
-
-      <div id="repeatEditor" class="repeat-editor" hidden>
-        <p class="repeat-editor-title">일정 반복</p>
-        <p id="repeatEditorHint" class="repeat-editor-hint"></p>
-        <div id="repeatEditorMainList" class="repeat-editor-mainlist" role="listbox" aria-label="반복 유형"></div>
-        <div id="repeatEditorWeekly" class="repeat-editor-sub" hidden>
-          <p class="repeat-editor-subtitle">반복 요일 (여러 개 선택 가능)</p>
-          <div id="repeatWeekdayChips" class="repeat-chip-grid repeat-chip-grid--week" role="group" aria-label="요일 선택"></div>
-        </div>
-        <div id="repeatEditorMonthly" class="repeat-editor-sub" hidden>
-          <p class="repeat-editor-subtitle">매월 반복할 날 (여러 개 선택 가능)</p>
-          <div id="repeatMonthDayChips" class="repeat-chip-grid repeat-chip-grid--month" role="group" aria-label="일 선택"></div>
-        </div>
-        <div id="repeatEditorCustom" class="repeat-editor-custom-wrap" hidden>
-          <div class="repeat-editor-custom-row">
-            <label class="sr-only" for="repeatEditorInterval">반복 간격</label>
-            <input id="repeatEditorInterval" type="number" min="1" max="999" value="1" aria-label="반복 간격" />
-            <label class="sr-only" for="repeatEditorUnit">반복 단위</label>
-            <select id="repeatEditorUnit" aria-label="반복 단위">
-              <option value="day">일마다</option>
-              <option value="week">주마다</option>
-              <option value="month">개월마다</option>
-              <option value="year">년마다</option>
-            </select>
-          </div>
-          <p class="repeat-editor-subtitle">반복 종료</p>
-          <div id="repeatEditorEndModeList" class="repeat-editor-mainlist" role="listbox" aria-label="반복 종료 방식"></div>
-          <div id="repeatEditorEndUntilRow" class="repeat-editor-expand repeat-editor-until-row" hidden>
-            <label class="sr-only" for="repeatEditorUntil">종료 날짜 선택</label>
-            <input id="repeatEditorUntil" type="date" aria-label="지정된 종료 날짜" />
-          </div>
-          <div id="repeatEditorEndCountRow" class="repeat-editor-expand repeat-editor-until-row" hidden>
-            <label class="sr-only" for="repeatEditorCountMax">반복 횟수</label>
-            <input
-              id="repeatEditorCountMax"
-              type="number"
-              min="1"
-              max="999"
-              value="10"
-              aria-label="지정된 반복 횟수"
-            />
-          </div>
-        </div>
-        <div class="repeat-editor-actions">
-          <button type="button" class="btn-cancel" id="repeatEditorCancel">취소</button>
-          <button type="button" class="btn-confirm" id="repeatEditorConfirm">확인</button>
-        </div>
       </div>
 
       <div class="task-scroll" id="taskScroll">
         <div id="taskList"></div>
+        <div id="repeatEditorDock" class="repeat-editor-dock">
+          <div id="repeatEditor" class="repeat-editor" hidden>
+            <p id="repeatEditorTitle" class="repeat-editor-title">일정 반복</p>
+            <p id="repeatEditorHint" class="repeat-editor-hint"></p>
+            <div id="repeatEditorMainList" class="repeat-editor-mainlist" role="listbox" aria-label="반복 유형"></div>
+            <div id="repeatEditorWeekly" class="repeat-editor-sub" hidden>
+              <p id="repeatSubWeek" class="repeat-editor-subtitle">반복 요일 (여러 개 선택 가능)</p>
+              <div id="repeatWeekdayChips" class="repeat-chip-grid repeat-chip-grid--week" role="group" aria-label="요일 선택"></div>
+            </div>
+            <div id="repeatEditorMonthly" class="repeat-editor-sub" hidden>
+              <p id="repeatSubMonth" class="repeat-editor-subtitle">매월 반복할 날 (여러 개 선택 가능)</p>
+              <div id="repeatMonthDayChips" class="repeat-chip-grid repeat-chip-grid--month" role="group" aria-label="일 선택"></div>
+            </div>
+            <div id="repeatEditorCustom" class="repeat-editor-custom-wrap" hidden>
+              <div class="repeat-editor-custom-row">
+                <label class="sr-only" for="repeatEditorInterval">반복 간격</label>
+                <input id="repeatEditorInterval" type="number" min="1" max="999" value="1" aria-label="반복 간격" />
+                <label class="sr-only" for="repeatEditorUnit">반복 단위</label>
+                <select id="repeatEditorUnit" aria-label="반복 단위">
+                  <option value="day">일마다</option>
+                  <option value="week">주마다</option>
+                  <option value="month">개월마다</option>
+                  <option value="year">년마다</option>
+                </select>
+              </div>
+            </div>
+            <div id="repeatEditorEndBlock" class="repeat-editor-custom-wrap" hidden>
+              <p id="repeatSubEnd" class="repeat-editor-subtitle">반복 종료</p>
+              <div id="repeatEditorEndModeList" class="repeat-editor-mainlist" role="listbox" aria-label="반복 종료 방식"></div>
+              <div id="repeatEditorEndUntilRow" class="repeat-editor-expand repeat-editor-until-row" hidden>
+                <label class="sr-only" for="repeatEditorUntil">종료 날짜 선택</label>
+                <input id="repeatEditorUntil" type="date" aria-label="지정된 종료 날짜" />
+              </div>
+              <div id="repeatEditorEndCountRow" class="repeat-editor-expand repeat-editor-until-row" hidden>
+                <label class="sr-only" for="repeatEditorCountMax">반복 횟수</label>
+                <input
+                  id="repeatEditorCountMax"
+                  type="number"
+                  min="1"
+                  max="999"
+                  value="2"
+                  aria-label="지정된 반복 횟수"
+                />
+              </div>
+            </div>
+            <div class="repeat-editor-actions">
+              <button type="button" class="btn-cancel" id="repeatEditorCancel">취소</button>
+              <button type="button" class="btn-confirm" id="repeatEditorConfirm">확인</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <section class="calendar-card" aria-label="달력">
+    <section id="calendarCard" class="calendar-card" aria-label="달력">
       <div class="cal-nav">
         <button type="button" id="calPrev" aria-label="이전 달">‹</button>
         <span id="calTitle" class="cal-title"></span>
         <button type="button" id="calNext" aria-label="다음 달">›</button>
       </div>
-      <div class="cal-weekdays">
+      <div id="calWeekdays" class="cal-weekdays">
         <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
       </div>
       <div id="calGrid" class="cal-grid"></div>
@@ -1140,13 +1233,12 @@
           설정
         </button>
       </div>
-      <p><strong>개발일시</strong> · <span id="footerDeveloped">2026-05-01</span></p>
-      <p><strong>업데이트일시</strong> · <span id="footerUpdated">—</span></p>
+      <p><strong id="footerLblDev">개발일시</strong> · <span id="footerDeveloped">2026-05-01</span></p>
+      <p><strong id="footerLblUpdated">업데이트일시</strong> · <span id="footerUpdated">—</span></p>
       <p>
-        <strong>개발자</strong> ·
+        <strong id="footerLblDeveloper">개발자</strong> ·
         <a href="mailto:soniprodoo@gmail.com">soniprodoo@gmail.com</a>
       </p>
-      <p><strong>기술 스펙</strong> · 단일 HTML · Vanilla JS · CSS 변수 테마 · 로컬 저장소 <code>localStorage</code> (<code>prodoo_tasks</code>) · 반복·달력 그리드 클라이언트 계산</p>
     </footer>
 
     <div id="deleteOccurrenceModal" class="modal-overlay" hidden>
@@ -1166,6 +1258,11 @@
     <div id="settingsModal" class="modal-overlay" hidden>
       <div class="modal-sheet modal-sheet--settings" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
         <p id="settingsModalTitle" class="modal-title">설정</p>
+        <div class="settings-prefs-block">
+          <div class="settings-theme-row">
+            <button type="button" class="settings-chip-btn settings-theme-toggle" id="settingsThemeToggle" aria-pressed="false"></button>
+          </div>
+        </div>
         <div class="settings-nav-row">
           <button
             type="button"
@@ -1185,16 +1282,33 @@
           >
             지우기
           </button>
+          <button
+            type="button"
+            class="settings-nav-btn"
+            id="settingsToggleLang"
+            aria-expanded="false"
+            aria-controls="settingsLangPanel"
+          >
+            언어
+          </button>
+        </div>
+        <div id="settingsLangPanel" class="settings-collapsible" hidden>
+          <div class="settings-lang-row" role="group" aria-labelledby="settingsToggleLang">
+            <button type="button" class="settings-chip-btn" id="settingsLangKo" data-app-lang="ko">한국어</button>
+            <button type="button" class="settings-chip-btn" id="settingsLangEn" data-app-lang="en">English</button>
+            <button type="button" class="settings-chip-btn" id="settingsLangJa" data-app-lang="ja">日本語</button>
+            <button type="button" class="settings-chip-btn" id="settingsLangZh" data-app-lang="zh">中文</button>
+          </div>
         </div>
         <div id="settingsExportPanel" class="settings-collapsible" hidden>
-          <p class="settings-subtitle">일정 내보내기</p>
-          <p class="modal-hint" style="text-align: left; margin-bottom: 6px; font-size: 0.76rem">
+          <p id="settingsExportSubtitle" class="settings-subtitle">일정 내보내기</p>
+          <p id="settingsExportHint" class="modal-hint" style="text-align: left; margin-bottom: 6px; font-size: 0.76rem">
             시작·종료 날짜 사이에 달력에 표시되는 일정만 텍스트 파일로 저장합니다.
           </p>
           <div class="settings-export-row">
-            <label for="exportStartDate">시작 날짜</label>
+            <label id="exportLblStart" for="exportStartDate">시작 날짜</label>
             <input type="date" id="exportStartDate" aria-label="내보내기 시작 날짜" />
-            <label for="exportEndDate">종료 날짜</label>
+            <label id="exportLblEnd" for="exportEndDate">종료 날짜</label>
             <input type="date" id="exportEndDate" aria-label="내보내기 종료 날짜" />
           </div>
           <button type="button" class="modal-action modal-action--secondary" id="settingsExportDownload">
@@ -1202,8 +1316,8 @@
           </button>
         </div>
         <div id="settingsPurgePanel" class="settings-collapsible" hidden>
-          <p class="settings-subtitle">일정 지우기</p>
-          <p class="modal-hint" style="text-align: left; margin-bottom: 4px">
+          <p id="settingsPurgeSubtitle" class="settings-subtitle">일정 지우기</p>
+          <p id="settingsPurgeHint" class="modal-hint" style="text-align: left; margin-bottom: 4px">
             달력에서 선택한 날짜를 기준으로 범위가 정해집니다. (한 주는 일~토)
           </p>
           <button type="button" class="modal-action modal-action--secondary" id="settingsPurgeDay">
@@ -1226,7 +1340,30 @@
     const STORAGE_KEY = "prodoo_tasks";
     const APP_DEVELOPED_AT = "2026-05-01";
 
-    const praiseMessages = [
+    const THEME_KEY = "prodoo_theme";
+    const LANG_KEY = "prodoo_lang";
+    const LANG_ORDER = ["ko", "en", "ja", "zh"];
+    const DEFAULT_REPEAT_COUNT_MAX = 2;
+    const GROWTH_IMAGE_PATHS = [null, "assets/growth-1.png", "assets/growth-2.png", "assets/growth-3.png", "assets/growth-4.png", "assets/growth-5.png", "assets/growth-6.png", "assets/growth-7.png"];
+
+    (function applyThemeFromStorage() {
+      document.documentElement.setAttribute(
+        "data-theme",
+        localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light"
+      );
+    })();
+
+    let appLang = LANG_ORDER.includes(localStorage.getItem(LANG_KEY) || "") ? localStorage.getItem(LANG_KEY) : "ko";
+    document.documentElement.lang = appLang === "zh" ? "zh-CN" : appLang;
+
+    function localeTag() {
+      return { ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" }[appLang] || "ko-KR";
+    }
+
+const I18N = {
+  ko: {
+    weekdays: ["일", "월", "화", "수", "목", "금", "토"],
+    praise: [
       "좋은 시작이에요 🌱",
       "잘하고 있어요 👍",
       "꾸준함이 느껴져요 ✨",
@@ -1234,19 +1371,586 @@
       "작은 한 걸음이 큰 변화예요 🌿",
       "포기하지 않았네요 💪",
       "오늘 하루도 수고했어요 🌳",
-    ];
+    ],
+    taglines: [
+      "오늘은 할 일 7개만 해보자~ 알겠지?",
+      "7개만 하면 오늘은 완전 성공이야! 짝짝!",
+      "하나, 둘, 셋! 7개까지 같이 해보자~",
+      "오늘은 7개만 쏙쏙 해볼까? 헤헤",
+      "7개만 하면 놀아도 돼~!",
+      "우리 같이 7개 도전~ 고고!",
+      "하나씩 하면 금방이야! 7개만 해보자",
+      "오늘도 7개 하면 멋쟁이~!",
+    ],
+    growth: [
+      { label: "아직 빈 땅이에요", stage: "빈 땅" },
+      { label: "싹을 준비해요", stage: "씨앗" },
+      { label: "새싹이 돋아요", stage: "어린 새싹" },
+      { label: "잎이 무럭 무럭해요", stage: "무럭 나무" },
+      { label: "줄기가 쑥쑥 자라요", stage: "쑥쑥 나무" },
+      { label: "우람하게 자라요", stage: "튼튼 나무" },
+      { label: "와우, 멋져요", stage: "와우 나무" },
+      { label: "숲을 이뤘어요", stage: "숲" },
+    ],
+    settings_title: "설정",
+    settings_theme: "테마",
+    settings_light: "라이트",
+    settings_dark: "다크",
+    settings_lang: "언어 / Language",
+    theme_aria_go_dark: "다크 테마로 전환",
+    theme_aria_go_light: "라이트 테마로 전환",
+    settings_export: "내려받기",
+    settings_purge: "지우기",
+    export_title: "일정보내기",
+    export_hint: "시작·종료 날짜 사이에 달력에 표시되는 일정만 텍스트 파일로 저장합니다.",
+    purge_title: "일정 지우기",
+    purge_hint: "달력에서 선택한 날짜를 기준으로 범위가 정해집니다. (한 주는 일~토)",
+    label_export_start: "시작 날짜",
+    label_export_end: "종료 날짜",
+    export_download: "텍스트 파일로 다운로드",
+    purge_day: "하루 일정 지우기",
+    purge_week: "한 주 일정 지우기",
+    purge_month: "한 달 일정 지우기",
+    purge_all: "전체 일정 지우기",
+    close: "닫기",
+    footer_settings: "설정",
+    footer_dev: "개발일시",
+    footer_updated: "업데이트일시",
+    footer_developer: "개발자",
+    footer_info_aria: "앱 정보",
+    add_btn: "추가",
+    task_ph: "할 일을 입력하고 Enter",
+    task_aria: "할 일 입력",
+    today_banner: "오늘 일정",
+    move_hint: "달력에서 옮길 날짜를 눌러 주세요",
+    move_cancel: "취소",
+    repeat_title: "일정 반복",
+    repeat_types_aria: "반복 유형",
+    repeat_week_title: "반복 요일 (여러 개 선택 가능)",
+    repeat_week_aria: "요일 선택",
+    repeat_month_title: "매월 반복할 날 (여러 개 선택 가능)",
+    repeat_month_aria: "일 선택",
+    repeat_int_aria: "반복 간격",
+    repeat_unit_aria: "반복 단위",
+    repeat_end_title: "반복 종료",
+    repeat_end_aria: "반복 종료 방식",
+    until_aria: "종료 날짜 선택",
+    count_aria: "반복 횟수",
+    until_date_aria: "지정된 종료 날짜",
+    count_max_aria: "지정된 반복 횟수",
+    repeat_cancel: "취소",
+    repeat_confirm: "확인",
+    delete_title: "삭제 방법을 선택하세요",
+    delete_this: "이 날짜만 삭제",
+    delete_series: "반복 일정 전체 삭제",
+    task_move: "옮기기",
+    task_move_on: "선택 중…",
+    task_repeat: "반복",
+    task_repeat_on: "설정 중…",
+    task_check_done: "완료 취소",
+    task_check_todo: "완료",
+    repeat_none: "반복 안 함",
+    repeat_daily: "매일",
+    repeat_weekly: "매주",
+    repeat_monthly: "매월",
+    repeat_yearly: "매년",
+    repeat_custom: "맞춤…",
+    end_never: "종료되지 않음",
+    end_until: "지정된 날짜",
+    end_count: "지정된 횟수 반복 후",
+    unit_day: "일마다",
+    unit_week: "주마다",
+    unit_month: "개월마다",
+    unit_year: "년마다",
+    cal_prev: "이전 달",
+    cal_next: "다음 달",
+    cal_aria: "달력",
+    empty_list: "할 일이 없어요",
+    repeat_hint: "이 일정의 날짜({date})를 기준으로 반복합니다.",
+    export_alert_dates: "시작 날짜와 종료 날짜를 모두 선택해 주세요.",
+    export_alert_order: "시작 날짜가 종료 날짜보다 늦을 수 없습니다.",
+    confirm_purge_day: "{label} 하루 치 일정을 지울까요?",
+    confirm_purge_week:
+      "선택한 날이 속한 한 주({start} ~ {end}) 일정을 모두 지울까요?\n(달력 첫 열 기준 일~토)",
+    confirm_purge_month: "{label}의 모든 일정을 지울까요?",
+    confirm_purge_all: "저장된 모든 일정을 지울까요? 되돌릴 수 없습니다.",
+    confirm_dup_task: "같은 내용의 일정이 이미 있습니다. 그래도 추가할까요?",
+    meta_repeat: "반복",
+    meta_weekly_pre: "매주",
+    meta_monthly_pre: "매월",
+    meta_custom: "맞춤:",
+    meta_until: "({until}까지)",
+    meta_count: "({n}회)",
+    meta_unit_day: "일",
+    meta_unit_week: "주",
+    meta_unit_month: "개월",
+    meta_unit_year: "년",
+    meta_every: "마다",
+    export_header: "PRODOO 일정보내기",
+    export_period: "기간",
+    export_created: "생성",
+    export_empty: "(선택한 기간에 표시되는 일정이 없습니다.)",
+    state_done: "완료",
+    state_todo: "미완료",
+    weekday_aria: "{name}요일",
+    repeat_yearly_fmt: "매년 {m}월 {d}일",
+    task_move_aria: "달력에서 날짜를 눌러 이 일정을 옮기기",
+    task_move_title: "누른 뒤 아래 달력에서 옮길 날짜를 선택하세요",
+    task_repeat_aria: "일정 반복 설정",
+    task_repeat_title: "반복 안 함에서도 매주·매월 등으로 바꿀 수 있어요",
+    del_task_aria: "삭제",
+    del_series_aria: "삭제 옵션 열기",
+  },
+  en: {
+    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    praise: [
+      "Great start 🌱",
+      "You're doing great 👍",
+      "Love the consistency ✨",
+      "You did it today 😊",
+      "Small steps add up 🌿",
+      "You didn't give up 💪",
+      "Nice work today 🌳",
+    ],
+    taglines: [
+      "Let's do just 7 tasks today~ deal?",
+      "Seven tasks = total win today! Yay!",
+      "One, two, three—let's hit 7 together~",
+      "How about a neat 7 today? Hehe",
+      "Finish 7 and playtime is yours~!",
+      "Seven-task challenge—let's go!",
+      "One by one—7 is easy!",
+      "Seven again today? You're a star~!",
+    ],
+    growth: [
+      { label: "Empty patch of earth", stage: "Bare soil" },
+      { label: "Ready to sprout", stage: "Seed" },
+      { label: "Little leaves appear", stage: "Sprout" },
+      { label: "Leaves are thriving", stage: "Growing tree" },
+      { label: "Shooting up fast", stage: "Stretching tree" },
+      { label: "Strong and full", stage: "Sturdy tree" },
+      { label: "Wow, amazing!", stage: "Wow tree" },
+      { label: "You grew a forest!", stage: "Forest" },
+    ],
+    settings_title: "Settings",
+    settings_theme: "Theme",
+    settings_light: "Light",
+    settings_dark: "Dark",
+    settings_lang: "Language / 言語",
+    theme_aria_go_dark: "Switch to dark theme",
+    theme_aria_go_light: "Switch to light theme",
+    settings_export: "Download",
+    settings_purge: "Erase",
+    export_title: "Export schedule",
+    export_hint: "Saves tasks shown on the calendar between the start and end dates as a text file.",
+    purge_title: "Delete schedule",
+    purge_hint: "Ranges use the date selected on the calendar. (A week is Sun–Sat)",
+    label_export_start: "Start date",
+    label_export_end: "End date",
+    export_download: "Download as text file",
+    purge_day: "Delete one day",
+    purge_week: "Delete one week",
+    purge_month: "Delete one month",
+    purge_all: "Delete everything",
+    close: "Close",
+    footer_settings: "Settings",
+    footer_dev: "Developed",
+    footer_updated: "Updated",
+    footer_developer: "Developer",
+    footer_info_aria: "App info",
+    add_btn: "Add",
+    task_ph: "Type a task and press Enter",
+    task_aria: "Task input",
+    today_banner: "Today",
+    move_hint: "Tap a date on the calendar to move here",
+    move_cancel: "Cancel",
+    repeat_title: "Repeat",
+    repeat_types_aria: "Repeat type",
+    repeat_week_title: "Weekdays (multi-select)",
+    repeat_week_aria: "Pick weekdays",
+    repeat_month_title: "Days of month (multi-select)",
+    repeat_month_aria: "Pick days",
+    repeat_int_aria: "Interval",
+    repeat_unit_aria: "Unit",
+    repeat_end_title: "End repeat",
+    repeat_end_aria: "How it ends",
+    until_aria: "End date",
+    count_aria: "Repeat count",
+    until_date_aria: "Chosen end date",
+    count_max_aria: "Max occurrences",
+    repeat_cancel: "Cancel",
+    repeat_confirm: "OK",
+    delete_title: "Choose how to delete",
+    delete_this: "This day only",
+    delete_series: "Delete entire series",
+    task_move: "Move",
+    task_move_on: "Picking…",
+    task_repeat: "Repeat",
+    task_repeat_on: "Editing…",
+    task_check_done: "Mark not done",
+    task_check_todo: "Mark done",
+    repeat_none: "No repeat",
+    repeat_daily: "Daily",
+    repeat_weekly: "Weekly",
+    repeat_monthly: "Monthly",
+    repeat_yearly: "Yearly",
+    repeat_custom: "Custom…",
+    end_never: "Never ends",
+    end_until: "Until date",
+    end_count: "After N times",
+    unit_day: "Every day",
+    unit_week: "Every week",
+    unit_month: "Every month",
+    unit_year: "Every year",
+    cal_prev: "Previous month",
+    cal_next: "Next month",
+    cal_aria: "Calendar",
+    empty_list: "No tasks",
+    repeat_hint: "Repeats are based on this task's date ({date}).",
+    export_alert_dates: "Please choose both start and end dates.",
+    export_alert_order: "Start date cannot be after end date.",
+    confirm_purge_day: "Delete all tasks on {label}?",
+    confirm_purge_week: "Delete all tasks in this week ({start} – {end})?\n(Sun–Sat row on the calendar)",
+    confirm_purge_month: "Delete all tasks in {label}?",
+    confirm_purge_all: "Delete every saved task? This cannot be undone.",
+    confirm_dup_task: "A task with the same text exists. Add anyway?",
+    meta_repeat: "repeat",
+    meta_weekly_pre: "Weekly",
+    meta_monthly_pre: "Monthly",
+    meta_custom: "Custom:",
+    meta_until: "(until {until})",
+    meta_count: "({n} times)",
+    meta_unit_day: "d",
+    meta_unit_week: "wk",
+    meta_unit_month: "mo",
+    meta_unit_year: "yr",
+    meta_every: " every",
+    export_header: "PRODOO schedule export",
+    export_period: "Range",
+    export_created: "Created",
+    export_empty: "(No tasks in this range on the calendar.)",
+    state_done: "Done",
+    state_todo: "Open",
+    weekday_aria: "{name}",
+    repeat_yearly_fmt: "Every year on {m}/{d}",
+    task_move_aria: "Tap a calendar date to move this task",
+    task_move_title: "Then pick the destination day below",
+    task_repeat_aria: "Repeat settings",
+    task_repeat_title: "You can switch from no repeat to weekly, monthly, etc.",
+    del_task_aria: "Delete",
+    del_series_aria: "Open delete options",
+  },
+  ja: {
+    weekdays: ["日", "月", "火", "水", "木", "金", "土"],
+    praise: [
+      "いいスタートだね 🌱",
+      "その調子 👍",
+      "続けられてるね ✨",
+      "今日もできたね 😊",
+      "小さな一歩が大きくなるよ 🌿",
+      "がんばったね 💪",
+      "今日もお疲れさま 🌳",
+    ],
+    taglines: [
+      "今日はタスク7個だけやってみよ〜ね？",
+      "7個できたら今日は大成功！パチパチ！",
+      "いち、に、さん！7個まで一緒に〜",
+      "今日は7個だけすっきりやろ？えへ",
+      "7個終わったら遊んでもいいよ〜！",
+      "7個チャレンジ、いっしょにゴー！",
+      "一つずつならすぐ！7個やろう",
+      "今日も7個できたらかっこいい〜！",
+    ],
+    growth: [
+      { label: "まだ何もない土", stage: "空の土" },
+      { label: "芽の準備", stage: "種" },
+      { label: "双葉が出たよ", stage: "若芽" },
+      { label: "葉が元気に育ってる", stage: "成長中の木" },
+      { label: "どんどん伸びてる", stage: "伸びる木" },
+      { label: "しっかり大きくなった", stage: "たくましい木" },
+      { label: "わあ、すごい！", stage: "ワウの木" },
+      { label: "森ができたよ", stage: "森" },
+    ],
+    settings_title: "設定",
+    settings_theme: "テーマ",
+    settings_light: "ライト",
+    settings_dark: "ダーク",
+    settings_lang: "言語 / Language",
+    theme_aria_go_dark: "ダークテーマに切り替え",
+    theme_aria_go_light: "ライトテーマに切り替え",
+    settings_export: "ダウンロード",
+    settings_purge: "削除",
+    export_title: "予定の書き出し",
+    export_hint: "開始日と終了日のあいだで、カレンダーに表示される予定だけをテキストで保存します。",
+    purge_title: "予定を消す",
+    purge_hint: "カレンダーで選んだ日を基準に範囲が決まります。（1週間は日〜土）",
+    label_export_start: "開始日",
+    label_export_end: "終了日",
+    export_download: "テキストでダウンロード",
+    purge_day: "1日分を消す",
+    purge_week: "1週間を消す",
+    purge_month: "1か月を消す",
+    purge_all: "すべて消す",
+    close: "閉じる",
+    footer_settings: "設定",
+    footer_dev: "開発日時",
+    footer_updated: "更新日時",
+    footer_developer: "開発者",
+    footer_info_aria: "アプリ情報",
+    add_btn: "追加",
+    task_ph: "タスクを入力して Enter",
+    task_aria: "タスク入力",
+    today_banner: "今日の予定",
+    move_hint: "カレンダーで移動先の日付をタップしてください",
+    move_cancel: "キャンセル",
+    repeat_title: "繰り返し",
+    repeat_types_aria: "繰り返しの種類",
+    repeat_week_title: "曜日（複数選択可）",
+    repeat_week_aria: "曜日を選ぶ",
+    repeat_month_title: "毎月の日（複数選択可）",
+    repeat_month_aria: "日にちを選ぶ",
+    repeat_int_aria: "間隔",
+    repeat_unit_aria: "単位",
+    repeat_end_title: "終了条件",
+    repeat_end_aria: "終了のしかた",
+    until_aria: "終了日を選ぶ",
+    count_aria: "繰り返し回数",
+    until_date_aria: "指定した終了日",
+    count_max_aria: "指定した回数",
+    repeat_cancel: "キャンセル",
+    repeat_confirm: "OK",
+    delete_title: "削除のしかたを選んでください",
+    delete_this: "この日だけ削除",
+    delete_series: "繰り返し予定をすべて削除",
+    task_move: "移動",
+    task_move_on: "選択中…",
+    task_repeat: "繰り返し",
+    task_repeat_on: "設定中…",
+    task_check_done: "未完了に戻す",
+    task_check_todo: "完了にする",
+    repeat_none: "繰り返さない",
+    repeat_daily: "毎日",
+    repeat_weekly: "毎週",
+    repeat_monthly: "毎月",
+    repeat_yearly: "毎年",
+    repeat_custom: "カスタム…",
+    end_never: "終わらない",
+    end_until: "指定日まで",
+    end_count: "指定回数で終了",
+    unit_day: "日ごと",
+    unit_week: "週ごと",
+    unit_month: "か月ごと",
+    unit_year: "年ごと",
+    cal_prev: "前の月",
+    cal_next: "次の月",
+    cal_aria: "カレンダー",
+    empty_list: "タスクがありません",
+    repeat_hint: "この予定の日付（{date}）を基準に繰り返します。",
+    export_alert_dates: "開始日と終了日の両方を選んでください。",
+    export_alert_order: "開始日を終了日より後にできません。",
+    confirm_purge_day: "{label}の予定をまるごと消しますか？",
+    confirm_purge_week: "この週（{start} 〜 {end}）の予定をすべて消しますか？\n（カレンダー1行 日〜土）",
+    confirm_purge_month: "{label}の予定をすべて消しますか？",
+    confirm_purge_all: "保存した予定をすべて消しますか？元に戻せません。",
+    confirm_dup_task: "同じ内容の予定があります。それでも追加しますか？",
+    meta_repeat: "繰り返し",
+    meta_weekly_pre: "毎週",
+    meta_monthly_pre: "毎月",
+    meta_custom: "カスタム:",
+    meta_until: "（{until}まで）",
+    meta_count: "（{n}回）",
+    meta_unit_day: "日",
+    meta_unit_week: "週",
+    meta_unit_month: "か月",
+    meta_unit_year: "年",
+    meta_every: "ごと",
+    export_header: "PRODOO 予定エクスポート",
+    export_period: "期間",
+    export_created: "作成",
+    export_empty: "（この期間にカレンダーに表示される予定はありません。）",
+    state_done: "完了",
+    state_todo: "未完了",
+    weekday_aria: "{name}",
+    repeat_yearly_fmt: "毎年{m}月{d}日",
+    task_move_aria: "カレンダーの日付をタップしてこの予定を移動",
+    task_move_title: "その後、下のカレンダーで移動先の日を選びます",
+    task_repeat_aria: "繰り返しの設定",
+    task_repeat_title: "なしから毎週・毎月などに変更できます",
+    del_task_aria: "削除",
+    del_series_aria: "削除オプションを開く",
+  },
+  zh: {
+    weekdays: ["日", "一", "二", "三", "四", "五", "六"],
+    praise: [
+      "不错的开始 🌱",
+      "做得很好 👍",
+      "坚持得很棒 ✨",
+      "今天也完成了 😊",
+      "小步也会走远 🌿",
+      "没有放弃呢 💪",
+      "今天也辛苦啦 🌳",
+    ],
+    taglines: [
+      "今天只做7件事就好～好吗？",
+      "完成7个今天就超成功！拍拍手！",
+      "一二三！一起做到7个～",
+      "今天试试刚好7个？嘿嘿",
+      "做完7个就可以玩啦～！",
+      "一起挑战7个～冲冲！",
+      "一步一步很快！就做7个吧",
+      "今天也完成7个就超帅～！",
+    ],
+    growth: [
+      { label: "还是空地", stage: "空地" },
+      { label: "准备发芽", stage: "种子" },
+      { label: "小芽冒出来啦", stage: "幼苗" },
+      { label: "叶子长得很好", stage: "茁壮小树" },
+      { label: "蹭蹭往上长", stage: "蹿高小树" },
+      { label: "长得结实又茂盛", stage: "壮壮树" },
+      { label: "哇，好厉害！", stage: "惊喜大树" },
+      { label: "长成一片森林啦", stage: "森林" },
+    ],
+    settings_title: "设置",
+    settings_theme: "主题",
+    settings_light: "浅色",
+    settings_dark: "深色",
+    settings_lang: "语言 / Language",
+    theme_aria_go_dark: "切换到深色主题",
+    theme_aria_go_light: "切换到浅色主题",
+    settings_export: "下载",
+    settings_purge: "清除",
+    export_title: "导出日程",
+    export_hint: "仅导出开始与结束日期之间、在日历上显示的日程为文本文件。",
+    purge_title: "清除日程",
+    purge_hint: "范围以日历中选中的日期为准。（一周为周日到周六）",
+    label_export_start: "开始日期",
+    label_export_end: "结束日期",
+    export_download: "下载为文本文件",
+    purge_day: "清除一天",
+    purge_week: "清除一周",
+    purge_month: "清除一月",
+    purge_all: "清除全部",
+    close: "关闭",
+    footer_settings: "设置",
+    footer_dev: "开发时间",
+    footer_updated: "更新时间",
+    footer_developer: "开发者",
+    footer_info_aria: "应用信息",
+    add_btn: "添加",
+    task_ph: "输入任务后按 Enter",
+    task_aria: "任务输入",
+    today_banner: "今日日程",
+    move_hint: "请在日历上点选要移动的日期",
+    move_cancel: "取消",
+    repeat_title: "重复",
+    repeat_types_aria: "重复类型",
+    repeat_week_title: "重复星期（可多选）",
+    repeat_week_aria: "选择星期",
+    repeat_month_title: "每月重复的日期（可多选）",
+    repeat_month_aria: "选择日期",
+    repeat_int_aria: "重复间隔",
+    repeat_unit_aria: "单位",
+    repeat_end_title: "结束重复",
+    repeat_end_aria: "结束方式",
+    until_aria: "选择结束日期",
+    count_aria: "重复次数",
+    until_date_aria: "指定的结束日期",
+    count_max_aria: "指定的重复次数",
+    repeat_cancel: "取消",
+    repeat_confirm: "确定",
+    delete_title: "选择删除方式",
+    delete_this: "仅删除这一天",
+    delete_series: "删除整个重复日程",
+    task_move: "移动",
+    task_move_on: "选择中…",
+    task_repeat: "重复",
+    task_repeat_on: "设置中…",
+    task_check_done: "取消完成",
+    task_check_todo: "标记完成",
+    repeat_none: "不重复",
+    repeat_daily: "每天",
+    repeat_weekly: "每周",
+    repeat_monthly: "每月",
+    repeat_yearly: "每年",
+    repeat_custom: "自定义…",
+    end_never: "永不结束",
+    end_until: "到指定日期",
+    end_count: "指定次数后结束",
+    unit_day: "按天",
+    unit_week: "按周",
+    unit_month: "按月",
+    unit_year: "按年",
+    cal_prev: "上个月",
+    cal_next: "下个月",
+    cal_aria: "日历",
+    empty_list: "没有任务",
+    repeat_hint: "以该日程的日期（{date}）为基准进行重复。",
+    export_alert_dates: "请选择开始和结束日期。",
+    export_alert_order: "开始日期不能晚于结束日期。",
+    confirm_purge_day: "要删除 {label} 当天的全部日程吗？",
+    confirm_purge_week: "要删除这一周（{start} ~ {end}）的全部日程吗？\n（日历一行 周日到周六）",
+    confirm_purge_month: "要删除 {label} 的全部日程吗？",
+    confirm_purge_all: "要删除所有已保存的日程吗？无法撤销。",
+    confirm_dup_task: "已有相同内容的日程。仍要添加吗？",
+    meta_repeat: "重复",
+    meta_weekly_pre: "每周",
+    meta_monthly_pre: "每月",
+    meta_custom: "自定义:",
+    meta_until: "（至 {until}）",
+    meta_count: "（{n} 次）",
+    meta_unit_day: "天",
+    meta_unit_week: "周",
+    meta_unit_month: "个月",
+    meta_unit_year: "年",
+    meta_every: "每",
+    export_header: "PRODOO 日程导出",
+    export_period: "区间",
+    export_created: "生成",
+    export_empty: "（所选区间在日历上没有日程。）",
+    state_done: "完成",
+    state_todo: "未完成",
+    weekday_aria: "星期{name}",
+    repeat_yearly_fmt: "每年{m}月{d}日",
+    task_move_aria: "点击日历上的日期以移动此任务",
+    task_move_title: "然后在下方日历选择目标日期",
+    task_repeat_aria: "重复设置",
+    task_repeat_title: "可从「不重复」改为每周、每月等",
+    del_task_aria: "删除",
+    del_series_aria: "打开删除选项",
+  },
+};
 
-    /** 완료 0회 = 빈 땅, 1~7회 = growth-1 … growth-7 PNG, 7회 이상 = 숲 유지 */
-    const GROWTH_STAGES = [
-      { image: null, label: "아직 빈 땅이에요", stage: "빈 땅" },
-      { image: "assets/growth-1.png", label: "싹을 준비해요", stage: "씨앗" },
-      { image: "assets/growth-2.png", label: "새싹이 돋아요", stage: "어린 새싹" },
-      { image: "assets/growth-3.png", label: "잎이 무럭 무럭해요", stage: "무럭 나무" },
-      { image: "assets/growth-4.png", label: "줄기가 쑥쑥 자라요", stage: "쑥쑥 나무" },
-      { image: "assets/growth-5.png", label: "우람하게 자라요", stage: "튼튼 나무" },
-      { image: "assets/growth-6.png", label: "와우, 멋져요", stage: "와우 나무" },
-      { image: "assets/growth-7.png", label: "숲을 이뤘어요", stage: "숲" },
-    ];
+
+    function tr(key, vars) {
+      const pack = I18N[appLang] || I18N.ko;
+      let s = pack[key];
+      if (s === undefined || s === null) s = I18N.ko[key];
+      if (typeof s !== "string") return key;
+      if (vars) {
+        Object.keys(vars).forEach((k) => {
+          s = s.split(`{${k}}`).join(String(vars[k]));
+        });
+      }
+      return s;
+    }
+
+    function langPack() {
+      return I18N[appLang] || I18N.ko;
+    }
+
+    function getWeekdays() {
+      return langPack().weekdays;
+    }
+
+    function getGrowthStages() {
+      const g = langPack().growth;
+      return g.map((row, i) => ({ image: GROWTH_IMAGE_PATHS[i], label: row.label, stage: row.stage }));
+    }
+
+    function pickRandomHeroTagline() {
+      const a = langPack().taglines;
+      return a[Math.floor(Math.random() * a.length)];
+    }
 
     function growthStageIndex(completedCount) {
       const n = Number(completedCount);
@@ -1268,7 +1972,9 @@
     }
 
     function formatMonthTitle(year, monthIndex) {
-      return `${year}년 ${monthIndex + 1}월`;
+      return new Intl.DateTimeFormat(localeTag(), { year: "numeric", month: "long" }).format(
+        new Date(year, monthIndex, 1)
+      );
     }
 
     function ymd(year, monthIndex, day) {
@@ -1294,7 +2000,9 @@
       return REPEAT_UNITS.includes(u) ? u : "day";
     }
 
-    const WEEKDAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
+    function emptyTaskListHint() {
+      return tr("empty_list");
+    }
 
     /** @param fallbackDay 0–6 */
     function normalizeRepeatWeekdays(val, fallbackDay) {
@@ -1368,7 +2076,7 @@
 
     function passesRepeatEnds(task, isoYmd) {
       const rep = normalizeRepeat(task.repeat);
-      if (rep !== "custom") return true;
+      if (rep === "none") return true;
       const mode = normalizeRepeatEndMode(task.repeat_end_mode, task.repeat_until, task.repeat_count_max);
       if (mode === "never") return true;
       if (mode === "until") {
@@ -1409,16 +2117,21 @@
     }
 
     function formatWeekdaysKo(wds) {
+      const names = getWeekdays();
       return [...new Set(wds)]
         .sort((a, b) => a - b)
-        .map((wd) => WEEKDAY_KO[wd])
+        .map((wd) => names[wd])
         .join(", ");
     }
 
     function formatMonthDaysKo(doms) {
       return [...new Set(doms)]
         .sort((a, b) => a - b)
-        .map((d) => `${d}일`)
+        .map((dom) => {
+          if (appLang === "en") return String(dom);
+          if (appLang === "ja" || appLang === "zh") return `${dom}日`;
+          return `${dom}일`;
+        })
         .join(", ");
     }
 
@@ -1429,13 +2142,25 @@
       const mon = d.getMonth() + 1;
       const day = d.getDate();
       return {
-        none: "반복 안 함",
-        daily: "매일",
-        weekly: `매주 ${formatWeekdaysKo(wds)}`,
-        monthly: `매월 ${formatMonthDaysKo(doms)}`,
-        yearly: `매년 ${mon}월 ${day}일`,
-        custom: "맞춤…",
+        none: tr("repeat_none"),
+        daily: tr("repeat_daily"),
+        weekly: `${tr("meta_weekly_pre")} ${formatWeekdaysKo(wds)}`,
+        monthly: `${tr("meta_monthly_pre")} ${formatMonthDaysKo(doms)}`,
+        yearly: tr("repeat_yearly_fmt", { m: String(mon), d: String(day) }),
+        custom: tr("repeat_custom"),
       };
+    }
+
+    function repeatEndMetaSuffix(task) {
+      const em = normalizeRepeatEndMode(task.repeat_end_mode, task.repeat_until, task.repeat_count_max);
+      if (em === "until" && task.repeat_until && /^\d{4}-\d{2}-\d{2}$/.test(task.repeat_until)) {
+        return " " + tr("meta_until", { until: task.repeat_until });
+      }
+      if (em === "count") {
+        const cm = normalizeRepeatCountMax(task.repeat_count_max) ?? DEFAULT_REPEAT_COUNT_MAX;
+        return " " + tr("meta_count", { n: String(cm) });
+      }
+      return "";
     }
 
     function repeatMetaDescription(task) {
@@ -1444,17 +2169,22 @@
       const d = parseYMD(task.date);
       if (rep === "weekly") {
         const wds = normalizeRepeatWeekdays(task.repeat_weekdays ?? task.repeat_weekday, d.getDay());
-        return `매주 ${formatWeekdaysKo(wds)} 반복`;
+        return `${tr("meta_weekly_pre")} ${formatWeekdaysKo(wds)} ${tr("meta_repeat")}${repeatEndMetaSuffix(task)}`;
       }
       if (rep === "monthly") {
         const doms = normalizeRepeatMonthDays(task.repeat_month_days ?? task.repeat_month_day, d.getDate());
-        return `매월 ${formatMonthDaysKo(doms)} 반복`;
+        return `${tr("meta_monthly_pre")} ${formatMonthDaysKo(doms)} ${tr("meta_repeat")}${repeatEndMetaSuffix(task)}`;
       }
       if (rep === "custom") {
         const n = normalizeRepeatInterval(task.repeat_interval);
         const u = normalizeRepeatUnit(task.repeat_unit);
-        const map = { day: "일", week: "주", month: "개월", year: "년" };
-        let s = `맞춤: ${n}${map[u]}마다`;
+        const map = {
+          day: tr("meta_unit_day"),
+          week: tr("meta_unit_week"),
+          month: tr("meta_unit_month"),
+          year: tr("meta_unit_year"),
+        };
+        let s = `${tr("meta_custom")} ${n}${map[u]}${tr("meta_every")}`;
         if (u === "week") {
           const wds = normalizeRepeatWeekdays(task.repeat_weekdays ?? task.repeat_weekday, d.getDay());
           s += ` · ${formatWeekdaysKo(wds)}`;
@@ -1465,15 +2195,15 @@
         }
         const em = normalizeRepeatEndMode(task.repeat_end_mode, task.repeat_until, task.repeat_count_max);
         if (em === "until" && task.repeat_until && /^\d{4}-\d{2}-\d{2}$/.test(task.repeat_until)) {
-          s += ` (${task.repeat_until}까지)`;
+          s += " " + tr("meta_until", { until: task.repeat_until });
         } else if (em === "count") {
-          const cm = normalizeRepeatCountMax(task.repeat_count_max) ?? 10;
-          s += ` (${cm}회)`;
+          const cm = normalizeRepeatCountMax(task.repeat_count_max) ?? DEFAULT_REPEAT_COUNT_MAX;
+          s += " " + tr("meta_count", { n: String(cm) });
         }
         return s;
       }
       const L = buildRepeatOptionLabels(task.date, task);
-      return `${L[rep]} 반복`;
+      return `${L[rep]} ${tr("meta_repeat")}${repeatEndMetaSuffix(task)}`;
     }
 
     function matchesWeeklyIntervalIso(isoYmd, anchorIsoYmd, intervalWeeks) {
@@ -1630,17 +2360,18 @@
     function applyPresetRepeat(task, rep) {
       const d = parseYMD(task.date);
       task.repeat = rep;
-      if (rep === "custom") {
+      if (rep === "none") {
+        task.repeat_interval = 1;
+        task.repeat_unit = "day";
+        task.repeat_until = null;
+        task.repeat_end_mode = "never";
+        task.repeat_count_max = null;
+      } else if (rep === "custom") {
         task.repeat_interval = normalizeRepeatInterval(task.repeat_interval || 1);
         task.repeat_unit = normalizeRepeatUnit(task.repeat_unit || "week");
       } else {
         task.repeat_interval = 1;
         task.repeat_unit = "day";
-      }
-      if (rep !== "custom") {
-        task.repeat_until = null;
-        task.repeat_end_mode = "never";
-        task.repeat_count_max = null;
       }
       if (rep === "weekly") {
         task.repeat_weekdays = normalizeRepeatWeekdays(task.repeat_weekdays ?? task.repeat_weekday, d.getDay());
@@ -1697,7 +2428,7 @@
                 typeof t.repeat_until === "string" && /^\d{4}-\d{2}-\d{2}$/.test(t.repeat_until) ? t.repeat_until : null,
               repeat_end_mode: endMode,
               repeat_count_max:
-                endMode === "count" ? normalizeRepeatCountMax(t.repeat_count_max) ?? 10 : null,
+                endMode === "count" ? normalizeRepeatCountMax(t.repeat_count_max) ?? DEFAULT_REPEAT_COUNT_MAX : null,
               repeat_weekdays: normalizeRepeatWeekdays(
                 Array.isArray(t.repeat_weekdays) ? t.repeat_weekdays : [t.repeat_weekday ?? td.getDay()],
                 td.getDay()
@@ -1710,19 +2441,30 @@
               repeat_skip_dates,
               created_at: typeof t.created_at === "string" ? t.created_at : new Date().toISOString(),
             };
-            if (rep !== "custom") {
+            if (rep === "none") {
               row.repeat_interval = 1;
               row.repeat_unit = "day";
               row.repeat_until = null;
               row.repeat_end_mode = "never";
               row.repeat_count_max = null;
+            } else if (rep !== "custom") {
+              row.repeat_interval = 1;
+              row.repeat_unit = "day";
             }
-            if (rep === "custom") {
+            if (rep !== "none") {
               if (row.repeat_end_mode === "until" && !row.repeat_until) {
                 row.repeat_end_mode = "never";
               }
               if (row.repeat_end_mode === "count" && row.repeat_count_max === null) {
-                row.repeat_count_max = 10;
+                row.repeat_count_max = DEFAULT_REPEAT_COUNT_MAX;
+              }
+              if (row.repeat_end_mode === "never") {
+                row.repeat_until = null;
+                row.repeat_count_max = null;
+              } else if (row.repeat_end_mode === "until") {
+                row.repeat_count_max = null;
+              } else if (row.repeat_end_mode === "count") {
+                row.repeat_until = null;
               }
             }
             return row;
@@ -1736,20 +2478,21 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     }
 
-    function completedCount(tasks) {
+    /** Completions on calendar date `iso` — tree starts empty for each day until you check tasks that day. */
+    function completedCountOnDate(tasks, iso) {
       let n = 0;
       tasks.forEach((t) => {
         if (normalizeRepeat(t.repeat) === "none") {
-          if (t.done) n++;
-        } else {
-          n += normalizeIsoDateArray(t.repeat_done_dates).length;
+          if (t.done && t.date === iso) n++;
+        } else if (normalizeIsoDateArray(t.repeat_done_dates).includes(iso)) {
+          n++;
         }
       });
       return n;
     }
 
     function growthForCount(n) {
-      return GROWTH_STAGES[growthStageIndex(n)];
+      return getGrowthStages()[growthStageIndex(n)];
     }
 
     const state = {
@@ -1762,6 +2505,7 @@
       praiseHideTimer: null,
       pendingMoveTaskId: null,
       pendingRepeatEditTaskId: null,
+      pendingRepeatEditOccurrence: null,
       repeatEditorDraftMode: "none",
       repeatEditorDraftEndMode: "never",
       pendingDeleteOccurrence: null,
@@ -1775,6 +2519,7 @@
       taskInput: document.getElementById("taskInput"),
       addBtn: document.getElementById("addBtn"),
       taskList: document.getElementById("taskList"),
+      repeatEditorDock: document.getElementById("repeatEditorDock"),
       todayBanner: document.getElementById("todayBanner"),
       otherDayLabel: document.getElementById("otherDayLabel"),
       treeWrap: document.getElementById("treeWrap"),
@@ -1784,6 +2529,7 @@
       treeLabel: document.getElementById("treeLabel"),
       treeStage: document.getElementById("treeStage"),
       praiseBubble: document.getElementById("praiseBubble"),
+      heroTagline: document.getElementById("heroTagline"),
       moveHint: document.getElementById("moveHint"),
       moveHintCancel: document.getElementById("moveHintCancel"),
       repeatEditor: document.getElementById("repeatEditor"),
@@ -1791,6 +2537,7 @@
       repeatEditorMainList: document.getElementById("repeatEditorMainList"),
       repeatEditorWeekly: document.getElementById("repeatEditorWeekly"),
       repeatEditorMonthly: document.getElementById("repeatEditorMonthly"),
+      repeatEditorEndBlock: document.getElementById("repeatEditorEndBlock"),
       repeatEditorCustom: document.getElementById("repeatEditorCustom"),
       repeatWeekdayChips: document.getElementById("repeatWeekdayChips"),
       repeatMonthDayChips: document.getElementById("repeatMonthDayChips"),
@@ -1824,7 +2571,162 @@
       exportStartDate: document.getElementById("exportStartDate"),
       exportEndDate: document.getElementById("exportEndDate"),
       settingsExportDownload: document.getElementById("settingsExportDownload"),
+      settingsModalTitle: document.getElementById("settingsModalTitle"),
+      settingsThemeToggle: document.getElementById("settingsThemeToggle"),
+      settingsToggleLang: document.getElementById("settingsToggleLang"),
+      settingsLangPanel: document.getElementById("settingsLangPanel"),
+      settingsLangKo: document.getElementById("settingsLangKo"),
+      settingsLangEn: document.getElementById("settingsLangEn"),
+      settingsLangJa: document.getElementById("settingsLangJa"),
+      settingsLangZh: document.getElementById("settingsLangZh"),
+      settingsExportSubtitle: document.getElementById("settingsExportSubtitle"),
+      settingsExportHint: document.getElementById("settingsExportHint"),
+      settingsPurgeSubtitle: document.getElementById("settingsPurgeSubtitle"),
+      settingsPurgeHint: document.getElementById("settingsPurgeHint"),
+      exportLblStart: document.getElementById("exportLblStart"),
+      exportLblEnd: document.getElementById("exportLblEnd"),
+      calendarCard: document.getElementById("calendarCard"),
+      calWeekdays: document.getElementById("calWeekdays"),
+      repeatEditorTitle: document.getElementById("repeatEditorTitle"),
+      repeatSubWeek: document.getElementById("repeatSubWeek"),
+      repeatSubMonth: document.getElementById("repeatSubMonth"),
+      repeatSubEnd: document.getElementById("repeatSubEnd"),
+      moveHintText: document.getElementById("moveHintText"),
+      deleteOccurrenceModalTitle: document.getElementById("deleteOccurrenceModalTitle"),
+      footerApp: document.querySelector(".app-footer"),
+      footerLblDev: document.getElementById("footerLblDev"),
+      footerLblUpdated: document.getElementById("footerLblUpdated"),
+      footerLblDeveloper: document.getElementById("footerLblDeveloper"),
     };
+
+    function syncRepeatUnitSelectOptions() {
+      const keys = ["unit_day", "unit_week", "unit_month", "unit_year"];
+      [...el.repeatEditorUnit.options].forEach((opt, i) => {
+        opt.textContent = tr(keys[i]);
+      });
+    }
+
+    function refreshCalWeekdayLabels() {
+      el.calWeekdays.querySelectorAll("span").forEach((sp, i) => {
+        sp.textContent = getWeekdays()[i];
+      });
+    }
+
+    function updateThemeButtons() {
+      const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      el.settingsThemeToggle.textContent = cur === "light" ? tr("settings_dark") : tr("settings_light");
+      el.settingsThemeToggle.setAttribute("aria-pressed", cur === "dark" ? "true" : "false");
+      el.settingsThemeToggle.setAttribute(
+        "aria-label",
+        cur === "light" ? tr("theme_aria_go_dark") : tr("theme_aria_go_light")
+      );
+    }
+
+    function updateLangChipActive() {
+      const map = { ko: el.settingsLangKo, en: el.settingsLangEn, ja: el.settingsLangJa, zh: el.settingsLangZh };
+      LANG_ORDER.forEach((code) => {
+        const btn = map[code];
+        if (btn) btn.classList.toggle("settings-chip-btn--on", appLang === code);
+      });
+    }
+
+    function setTheme(mode) {
+      const dark = mode === "dark";
+      localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      updateThemeButtons();
+    }
+
+    function setLang(next) {
+      if (!LANG_ORDER.includes(next)) return;
+      if (next === appLang) {
+        el.settingsLangPanel.hidden = true;
+        el.settingsToggleLang.setAttribute("aria-expanded", "false");
+        return;
+      }
+      appLang = next;
+      localStorage.setItem(LANG_KEY, appLang);
+      document.documentElement.lang = appLang === "zh" ? "zh-CN" : appLang;
+      applyI18n();
+      renderCalendar();
+      renderTasks();
+      renderTree();
+      updateSectionHeaders();
+      el.heroTagline.textContent = pickRandomHeroTagline();
+      el.settingsLangPanel.hidden = true;
+      el.settingsToggleLang.setAttribute("aria-expanded", "false");
+    }
+
+    function applyI18n() {
+      el.settingsModalTitle.textContent = tr("settings_title");
+      el.settingsToggleLang.textContent = tr("settings_lang");
+      updateThemeButtons();
+      updateLangChipActive();
+      el.openSettingsBtn.textContent = tr("footer_settings");
+      el.settingsToggleExport.textContent = tr("settings_export");
+      el.settingsTogglePurge.textContent = tr("settings_purge");
+      el.settingsExportSubtitle.textContent = tr("export_title");
+      el.settingsExportHint.textContent = tr("export_hint");
+      el.exportLblStart.textContent = tr("label_export_start");
+      el.exportLblEnd.textContent = tr("label_export_end");
+      el.settingsExportDownload.textContent = tr("export_download");
+      el.settingsPurgeSubtitle.textContent = tr("purge_title");
+      el.settingsPurgeHint.textContent = tr("purge_hint");
+      el.settingsPurgeDay.textContent = tr("purge_day");
+      el.settingsPurgeWeek.textContent = tr("purge_week");
+      el.settingsPurgeMonth.textContent = tr("purge_month");
+      el.settingsPurgeAll.textContent = tr("purge_all");
+      el.settingsModalClose.textContent = tr("close");
+      el.repeatEditorTitle.textContent = tr("repeat_title");
+      el.repeatSubWeek.textContent = tr("repeat_week_title");
+      el.repeatSubMonth.textContent = tr("repeat_month_title");
+      el.repeatSubEnd.textContent = tr("repeat_end_title");
+      el.addBtn.textContent = tr("add_btn");
+      el.taskInput.placeholder = tr("task_ph");
+      el.taskInput.setAttribute("aria-label", tr("task_aria"));
+      el.todayBanner.textContent = tr("today_banner");
+      el.moveHintText.textContent = tr("move_hint");
+      el.moveHintCancel.textContent = tr("move_cancel");
+      el.deleteOccurrenceModalTitle.textContent = tr("delete_title");
+      el.deleteOccurrenceThisDay.textContent = tr("delete_this");
+      el.deleteOccurrenceWholeSeries.textContent = tr("delete_series");
+      el.deleteOccurrenceModalCancel.textContent = tr("close");
+      el.repeatEditorCancel.textContent = tr("repeat_cancel");
+      el.repeatEditorConfirm.textContent = tr("repeat_confirm");
+      el.calPrev.setAttribute("aria-label", tr("cal_prev"));
+      el.calNext.setAttribute("aria-label", tr("cal_next"));
+      el.calendarCard.setAttribute("aria-label", tr("cal_aria"));
+      el.repeatEditorMainList.setAttribute("aria-label", tr("repeat_types_aria"));
+      el.repeatWeekdayChips.setAttribute("aria-label", tr("repeat_week_aria"));
+      el.repeatMonthDayChips.setAttribute("aria-label", tr("repeat_month_aria"));
+      el.repeatEditorInterval.setAttribute("aria-label", tr("repeat_int_aria"));
+      el.repeatEditorUnit.setAttribute("aria-label", tr("repeat_unit_aria"));
+      el.repeatEditorEndModeList.setAttribute("aria-label", tr("repeat_end_aria"));
+      el.repeatEditorUntil.setAttribute("aria-label", tr("until_date_aria"));
+      el.repeatEditorCountMax.setAttribute("aria-label", tr("count_max_aria"));
+      el.exportStartDate.setAttribute("aria-label", tr("label_export_start"));
+      el.exportEndDate.setAttribute("aria-label", tr("label_export_end"));
+      el.footerApp.setAttribute("aria-label", tr("footer_info_aria"));
+      el.footerLblDev.textContent = tr("footer_dev");
+      el.footerLblUpdated.textContent = tr("footer_updated");
+      el.footerLblDeveloper.textContent = tr("footer_developer");
+      syncRepeatUnitSelectOptions();
+      refreshCalWeekdayLabels();
+      [
+        ["repeatEditorInterval", "repeat_int_aria"],
+        ["repeatEditorUnit", "repeat_unit_aria"],
+        ["repeatEditorUntil", "until_aria"],
+        ["repeatEditorCountMax", "count_aria"],
+      ].forEach(([id, key]) => {
+        const lab = document.querySelector(`label.sr-only[for="${id}"]`);
+        if (lab) lab.textContent = tr(key);
+      });
+      const rid = state.pendingRepeatEditTaskId;
+      if (rid && !el.repeatEditor.hidden) {
+        const tk = state.tasks.find((t) => t.id === rid);
+        if (tk) fillRepeatEditorForm(tk);
+      }
+    }
 
     function datesWithTasks(calYear, calMonth) {
       const set = new Set();
@@ -1848,7 +2750,22 @@
 
     function closeRepeatEditor() {
       state.pendingRepeatEditTaskId = null;
+      state.pendingRepeatEditOccurrence = null;
       el.repeatEditor.hidden = true;
+      el.repeatEditorDock.appendChild(el.repeatEditor);
+    }
+
+    function attachRepeatEditorUnderRow() {
+      if (!state.pendingRepeatEditTaskId || el.repeatEditor.hidden) return;
+      const tid = state.pendingRepeatEditTaskId;
+      const occ = state.pendingRepeatEditOccurrence;
+      if (!occ) {
+        el.repeatEditorDock.appendChild(el.repeatEditor);
+        return;
+      }
+      const row = el.taskList.querySelector(`.task-item[data-id="${tid}"][data-occurrence="${occ}"]`);
+      if (row) row.insertAdjacentElement("afterend", el.repeatEditor);
+      else el.repeatEditorDock.appendChild(el.repeatEditor);
     }
 
     function closeDeleteOccurrenceModal() {
@@ -1863,8 +2780,10 @@
     function resetSettingsPanels() {
       el.settingsExportPanel.hidden = true;
       el.settingsPurgePanel.hidden = true;
+      el.settingsLangPanel.hidden = true;
       el.settingsToggleExport.setAttribute("aria-expanded", "false");
       el.settingsTogglePurge.setAttribute("aria-expanded", "false");
+      el.settingsToggleLang.setAttribute("aria-expanded", "false");
     }
 
     function toggleSettingsExportPanel() {
@@ -1874,6 +2793,8 @@
       if (opening) {
         el.settingsPurgePanel.hidden = true;
         el.settingsTogglePurge.setAttribute("aria-expanded", "false");
+        el.settingsLangPanel.hidden = true;
+        el.settingsToggleLang.setAttribute("aria-expanded", "false");
       }
     }
 
@@ -1884,6 +2805,20 @@
       if (opening) {
         el.settingsExportPanel.hidden = true;
         el.settingsToggleExport.setAttribute("aria-expanded", "false");
+        el.settingsLangPanel.hidden = true;
+        el.settingsToggleLang.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    function toggleSettingsLangPanel() {
+      const opening = el.settingsLangPanel.hidden;
+      el.settingsLangPanel.hidden = !opening;
+      el.settingsToggleLang.setAttribute("aria-expanded", String(opening));
+      if (opening) {
+        el.settingsExportPanel.hidden = true;
+        el.settingsToggleExport.setAttribute("aria-expanded", "false");
+        el.settingsPurgePanel.hidden = true;
+        el.settingsTogglePurge.setAttribute("aria-expanded", "false");
       }
     }
 
@@ -1900,33 +2835,54 @@
       updateMoveHint();
       refreshExportDateInputs();
       resetSettingsPanels();
+      updateThemeButtons();
+      updateLangChipActive();
       el.settingsModal.hidden = false;
     }
 
     function buildScheduleExportText(startIso, endIso) {
-      const created = new Date().toLocaleString("ko-KR", {
+      const created = new Date().toLocaleString(localeTag(), {
         dateStyle: "medium",
         timeStyle: "short",
       });
-      let text = `PRODOO 일정 내보내기\n기간: ${startIso} ~ ${endIso}\n생성: ${created}\n${"=".repeat(42)}\n\n`;
+      let text =
+        tr("export_header") +
+        "\n" +
+        tr("export_period") +
+        ": " +
+        startIso +
+        " ~ " +
+        endIso +
+        "\n" +
+        tr("export_created") +
+        ": " +
+        created +
+        "\n" +
+        "=".repeat(42) +
+        "\n\n";
       let any = false;
       forEachDateInclusive(startIso, endIso, (iso) => {
         const rows = sortVirtualTaskRows(tasksForSelectedDate(iso));
         if (!rows.length) return;
         any = true;
         const d = parseYMD(iso);
-        text += `${iso} (${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일)\n`;
+        const lineDate = new Intl.DateTimeFormat(localeTag(), {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }).format(d);
+        text += iso + " (" + lineDate + ")\n";
         rows.forEach(({ task, occurrenceIso }) => {
           const done = occurrenceDone(task, occurrenceIso);
-          const stateKo = done ? "완료" : "미완료";
+          const st = done ? tr("state_done") : tr("state_todo");
           const meta = repeatMetaDescription(task);
-          const metaPart = meta ? ` · ${meta}` : "";
-          text += `  [${stateKo}] ${task.text}${metaPart}\n`;
+          const metaPart = meta ? " · " + meta : "";
+          text += "  [" + st + "] " + task.text + metaPart + "\n";
         });
         text += "\n";
       });
       if (!any) {
-        text += "(선택한 기간에 표시되는 일정이 없습니다.)\n";
+        text += tr("export_empty") + "\n";
       }
       return text;
     }
@@ -1935,11 +2891,11 @@
       const startIso = el.exportStartDate.value.trim();
       const endIso = el.exportEndDate.value.trim();
       if (!/^\d{4}-\d{2}-\d{2}$/.test(startIso) || !/^\d{4}-\d{2}-\d{2}$/.test(endIso)) {
-        alert("시작 날짜와 종료 날짜를 모두 선택해 주세요.");
+        alert(tr("export_alert_dates"));
         return;
       }
       if (startIso > endIso) {
-        alert("시작 날짜가 종료 날짜보다 늦을 수 없습니다.");
+        alert(tr("export_alert_order"));
         return;
       }
       const body = buildScheduleExportText(startIso, endIso);
@@ -1987,12 +2943,12 @@
       if (!task) return;
       el.repeatEditorMainList.innerHTML = "";
       const MAIN_LABELS = {
-        none: "반복 안 함",
-        daily: "매일",
-        weekly: "매주",
-        monthly: "매월",
-        yearly: "매년",
-        custom: "맞춤…",
+        none: tr("repeat_none"),
+        daily: tr("repeat_daily"),
+        weekly: tr("repeat_weekly"),
+        monthly: tr("repeat_monthly"),
+        yearly: tr("repeat_yearly"),
+        custom: tr("repeat_custom"),
       };
       REPEAT_MODES.forEach((mode) => {
         const btn = document.createElement("button");
@@ -2003,7 +2959,7 @@
         btn.addEventListener("click", () => {
           state.repeatEditorDraftMode = mode;
           renderRepeatEditorMainList();
-          if (mode === "custom") renderRepeatEditorEndModeList();
+          if (mode !== "none") renderRepeatEditorEndModeList();
           syncRepeatEditorSubpanels();
         });
         el.repeatEditorMainList.appendChild(btn);
@@ -2013,9 +2969,9 @@
     function renderRepeatEditorEndModeList() {
       el.repeatEditorEndModeList.innerHTML = "";
       const LABELS = {
-        never: "종료되지 않음",
-        until: "지정된 날짜",
-        count: "지정된 횟수 반복 후",
+        never: tr("end_never"),
+        until: tr("end_until"),
+        count: tr("end_count"),
       };
       REPEAT_END_MODES.forEach((mode) => {
         const btn = document.createElement("button");
@@ -2046,13 +3002,13 @@
         normalizeRepeatWeekdays(task.repeat_weekdays ?? task.repeat_weekday, base.getDay())
       );
       el.repeatWeekdayChips.innerHTML = "";
-      WEEKDAY_KO.forEach((name, idx) => {
+      getWeekdays().forEach((name, idx) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "repeat-chip" + (selected.has(idx) ? " repeat-chip--selected" : "");
         btn.dataset.wd = String(idx);
         btn.textContent = name;
-        btn.setAttribute("aria-label", `${name}요일`);
+        btn.setAttribute("aria-label", tr("weekday_aria", { name }));
         btn.addEventListener("click", () => {
           btn.classList.toggle("repeat-chip--selected");
         });
@@ -2083,7 +3039,7 @@
 
     function fillRepeatEditorForm(task) {
       const dateStr = task.date;
-      el.repeatEditorHint.textContent = `이 일정의 날짜(${dateStr})를 기준으로 반복합니다.`;
+      el.repeatEditorHint.textContent = tr("repeat_hint", { date: dateStr });
       state.repeatEditorDraftMode = normalizeRepeat(task.repeat);
       state.repeatEditorDraftEndMode = normalizeRepeatEndMode(
         task.repeat_end_mode,
@@ -2100,7 +3056,9 @@
       el.repeatEditorUnit.value = normalizeRepeatUnit(task.repeat_unit);
       el.repeatEditorUntil.value =
         task.repeat_until && /^\d{4}-\d{2}-\d{2}$/.test(task.repeat_until) ? task.repeat_until : "";
-      el.repeatEditorCountMax.value = String(normalizeRepeatCountMax(task.repeat_count_max) ?? 10);
+      el.repeatEditorCountMax.value = String(
+        normalizeRepeatCountMax(task.repeat_count_max) ?? DEFAULT_REPEAT_COUNT_MAX
+      );
 
       syncRepeatEditorSubpanels();
     }
@@ -2114,12 +3072,13 @@
       el.repeatEditorWeekly.hidden = mode !== "weekly" && !(mode === "custom" && cu === "week");
       el.repeatEditorMonthly.hidden = mode !== "monthly" && !(mode === "custom" && cu === "month");
       el.repeatEditorCustom.hidden = mode !== "custom";
+      el.repeatEditorEndBlock.hidden = mode === "none";
       const end = state.repeatEditorDraftEndMode;
-      el.repeatEditorEndUntilRow.hidden = mode !== "custom" || end !== "until";
-      el.repeatEditorEndCountRow.hidden = mode !== "custom" || end !== "count";
+      el.repeatEditorEndUntilRow.hidden = end !== "until";
+      el.repeatEditorEndCountRow.hidden = end !== "count";
     }
 
-    function openRepeatEditor(taskId) {
+    function openRepeatEditor(taskId, occurrenceIso) {
       const task = state.tasks.find((t) => t.id === taskId);
       if (!task || (normalizeRepeat(task.repeat) === "none" && task.done)) return;
       closeDeleteOccurrenceModal();
@@ -2127,18 +3086,19 @@
       state.pendingMoveTaskId = null;
       updateMoveHint();
       state.pendingRepeatEditTaskId = taskId;
+      state.pendingRepeatEditOccurrence = occurrenceIso;
       fillRepeatEditorForm(task);
       el.repeatEditor.hidden = false;
       renderTasks();
     }
 
-    function toggleRepeatEditor(taskId) {
-      if (state.pendingRepeatEditTaskId === taskId) {
+    function toggleRepeatEditor(taskId, occurrenceIso) {
+      if (state.pendingRepeatEditTaskId === taskId && state.pendingRepeatEditOccurrence === occurrenceIso) {
         closeRepeatEditor();
         renderTasks();
         return;
       }
-      openRepeatEditor(taskId);
+      openRepeatEditor(taskId, occurrenceIso);
     }
 
     function confirmRepeatEditor() {
@@ -2176,6 +3136,8 @@
         if (u === "month") {
           task.repeat_month_days = normalizeRepeatMonthDays(dSel.length ? dSel : base.getDate(), base.getDate());
         }
+      }
+      if (rep !== "none") {
         let endMode = state.repeatEditorDraftEndMode;
         if (!REPEAT_END_MODES.includes(endMode)) endMode = "never";
         task.repeat_end_mode = endMode;
@@ -2189,7 +3151,7 @@
           }
         } else if (endMode === "count") {
           task.repeat_until = null;
-          task.repeat_count_max = normalizeRepeatCountMax(el.repeatEditorCountMax.value) ?? 10;
+          task.repeat_count_max = normalizeRepeatCountMax(el.repeatEditorCountMax.value) ?? DEFAULT_REPEAT_COUNT_MAX;
         } else {
           task.repeat_until = null;
           task.repeat_count_max = null;
@@ -2274,6 +3236,7 @@
         renderCalendar();
         renderTasks();
         updateSectionHeaders();
+        renderTree();
       });
       return btn;
     }
@@ -2285,12 +3248,16 @@
       el.otherDayLabel.hidden = isToday;
       if (!isToday) {
         const d = parseYMD(state.selectedDate);
-        el.otherDayLabel.textContent = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+        el.otherDayLabel.textContent = new Intl.DateTimeFormat(localeTag(), {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }).format(d);
       }
     }
 
     function renderTree() {
-      const n = completedCount(state.tasks);
+      const n = completedCountOnDate(state.tasks, state.selectedDate);
       const idx = growthStageIndex(n);
       const g = growthForCount(n);
       el.treeLabel.textContent = g.label;
@@ -2319,7 +3286,8 @@
     }
 
     function pickPraiseIndex() {
-      const len = praiseMessages.length;
+      const msgs = langPack().praise;
+      const len = msgs.length;
       if (len <= 1) return 0;
       let idx;
       do {
@@ -2335,7 +3303,7 @@
       const idx = pickPraiseIndex();
       state.lastPraiseIndex = idx;
       const bubble = el.praiseBubble;
-      bubble.textContent = praiseMessages[idx];
+      bubble.textContent = langPack().praise[idx];
       bubble.classList.remove("fade-out");
       bubble.classList.add("visible");
 
@@ -2358,6 +3326,10 @@
     }
 
     function renderTasks() {
+      if (el.repeatEditor.parentNode === el.taskList) {
+        el.repeatEditorDock.appendChild(el.repeatEditor);
+      }
+
       const rows = tasksForSelectedDate(state.selectedDate);
       const sorted = sortVirtualTaskRows(rows);
 
@@ -2365,7 +3337,7 @@
       if (sorted.length === 0) {
         const p = document.createElement("p");
         p.className = "empty-hint";
-        p.textContent = "이 날은 할 일이 없어요";
+        p.textContent = emptyTaskListHint();
         el.taskList.appendChild(p);
         return;
       }
@@ -2375,6 +3347,7 @@
         frag.appendChild(taskRow(task, occurrenceIso));
       });
       el.taskList.appendChild(frag);
+      attachRepeatEditorUnderRow();
     }
 
     function taskRow(task, occurrenceIso) {
@@ -2391,7 +3364,7 @@
       const check = document.createElement("button");
       check.type = "button";
       check.className = "task-check";
-      check.setAttribute("aria-label", done ? "완료 취소" : "완료");
+      check.setAttribute("aria-label", done ? tr("task_check_done") : tr("task_check_todo"));
       check.textContent = done ? "✓" : "";
       check.addEventListener("click", () => toggleDoneOccurrence(task.id, occurrenceIso));
 
@@ -2422,9 +3395,9 @@
         const moveBtn = document.createElement("button");
         moveBtn.type = "button";
         moveBtn.className = "task-move";
-        moveBtn.textContent = state.pendingMoveTaskId === task.id ? "선택 중…" : "옮기기";
-        moveBtn.setAttribute("aria-label", "달력에서 날짜를 눌러 이 일정을 옮기기");
-        moveBtn.title = "누른 뒤 아래 달력에서 옮길 날짜를 선택하세요";
+        moveBtn.textContent = state.pendingMoveTaskId === task.id ? tr("task_move_on") : tr("task_move");
+        moveBtn.setAttribute("aria-label", tr("task_move_aria"));
+        moveBtn.title = tr("task_move_title");
         moveBtn.addEventListener("click", (ev) => {
           ev.stopPropagation();
           closeRepeatEditor();
@@ -2440,12 +3413,12 @@
         const repeatBtn = document.createElement("button");
         repeatBtn.type = "button";
         repeatBtn.className = "task-move";
-        repeatBtn.textContent = state.pendingRepeatEditTaskId === task.id ? "설정 중…" : "반복";
-        repeatBtn.setAttribute("aria-label", "일정 반복 설정");
-        repeatBtn.title = "반복 안 함에서도 매주·매월 등으로 바꿀 수 있어요";
+        repeatBtn.textContent = state.pendingRepeatEditTaskId === task.id ? tr("task_repeat_on") : tr("task_repeat");
+        repeatBtn.setAttribute("aria-label", tr("task_repeat_aria"));
+        repeatBtn.title = tr("task_repeat_title");
         repeatBtn.addEventListener("click", (ev) => {
           ev.stopPropagation();
-          toggleRepeatEditor(task.id);
+          toggleRepeatEditor(task.id, occurrenceIso);
         });
         actions.appendChild(repeatBtn);
 
@@ -2457,7 +3430,7 @@
       const del = document.createElement("button");
       del.type = "button";
       del.className = "task-del";
-      del.setAttribute("aria-label", rep === "none" ? "삭제" : "삭제 옵션 열기");
+      del.setAttribute("aria-label", rep === "none" ? tr("del_task_aria") : tr("del_series_aria"));
       del.textContent = "×";
       del.addEventListener("click", () => deleteOccurrence(task.id, occurrenceIso));
 
@@ -2577,17 +3550,19 @@
     function runPurgeDay() {
       const sel = state.selectedDate;
       const d = parseYMD(sel);
-      const label = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
-      if (!confirm(`${label} 하루 치 일정을 지울까요?`)) return;
+      const label = new Intl.DateTimeFormat(localeTag(), {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(d);
+      if (!confirm(tr("confirm_purge_day", { label }))) return;
       purgeTasksForSingleDate(sel);
       finishBulkPurge();
     }
 
     function runPurgeWeek() {
       const { startIso, endIso } = weekRangeForSelectedDate(state.selectedDate);
-      if (
-        !confirm(`선택한 날이 속한 한 주(${startIso} ~ ${endIso}) 일정을 모두 지울까요?\n(달력 첫 열 기준 일~토)`)
-      ) {
+      if (!confirm(tr("confirm_purge_week", { start: startIso, end: endIso }))) {
         return;
       }
       forEachDateInclusive(startIso, endIso, purgeTasksForSingleDate);
@@ -2597,13 +3572,14 @@
     function runPurgeMonth() {
       const { startIso, endIso } = monthRangeForSelectedDate(state.selectedDate);
       const d = parseYMD(startIso);
-      if (!confirm(`${d.getFullYear()}년 ${d.getMonth() + 1}월의 모든 일정을 지울까요?`)) return;
+      const label = new Intl.DateTimeFormat(localeTag(), { year: "numeric", month: "long" }).format(d);
+      if (!confirm(tr("confirm_purge_month", { label }))) return;
       forEachDateInclusive(startIso, endIso, purgeTasksForSingleDate);
       finishBulkPurge();
     }
 
     function runPurgeAll() {
-      if (!confirm("저장된 모든 일정을 지울까요? 되돌릴 수 없습니다.")) return;
+      if (!confirm(tr("confirm_purge_all"))) return;
       state.tasks = [];
       state.pendingMoveTaskId = null;
       updateMoveHint();
@@ -2617,7 +3593,7 @@
         return;
       }
       if (state.tasks.some((t) => t.text.trim() === text)) {
-        if (!confirm("같은 내용의 일정이 이미 있습니다. 그래도 추가할까요?")) {
+        if (!confirm(tr("confirm_dup_task"))) {
           el.taskInput.focus();
           return;
         }
@@ -2719,6 +3695,15 @@
 
     el.openSettingsBtn.addEventListener("click", openSettingsModal);
 
+    el.settingsThemeToggle.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      setTheme(cur === "light" ? "dark" : "light");
+    });
+    el.settingsLangKo.addEventListener("click", () => setLang("ko"));
+    el.settingsLangEn.addEventListener("click", () => setLang("en"));
+    el.settingsLangJa.addEventListener("click", () => setLang("ja"));
+    el.settingsLangZh.addEventListener("click", () => setLang("zh"));
+
     el.settingsModalClose.addEventListener("click", closeSettingsModal);
 
     el.settingsModal.addEventListener("click", (e) => {
@@ -2734,12 +3719,13 @@
 
     el.settingsToggleExport.addEventListener("click", toggleSettingsExportPanel);
     el.settingsTogglePurge.addEventListener("click", toggleSettingsPurgePanel);
+    el.settingsToggleLang.addEventListener("click", toggleSettingsLangPanel);
 
     el.footerDeveloped.textContent = APP_DEVELOPED_AT;
     try {
       const lm = document.lastModified;
       if (lm) {
-        el.footerUpdated.textContent = new Date(lm).toLocaleString("ko-KR", {
+        el.footerUpdated.textContent = new Date(lm).toLocaleString(localeTag(), {
           dateStyle: "medium",
           timeStyle: "short",
         });
@@ -2763,8 +3749,10 @@
     });
 
     updateMoveHint();
+    applyI18n();
     renderCalendar();
     updateSectionHeaders();
+    el.heroTagline.textContent = pickRandomHeroTagline();
     renderTree();
     renderTasks();
   </script>
