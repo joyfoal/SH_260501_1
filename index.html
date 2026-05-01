@@ -448,6 +448,50 @@
       flex-direction: column;
       gap: 2px;
       align-self: center;
+      cursor: pointer;
+    }
+
+    .task-progress-panel {
+      flex-basis: 100%;
+      width: 100%;
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      border: 1px solid var(--line);
+      max-height: 200px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .task-progress-title {
+      margin: 0 0 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .task-progress-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .task-progress-chip {
+      font-size: 0.68rem;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .task-progress-chip--done {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
     }
 
     .task-meta {
@@ -1466,6 +1510,7 @@ const I18N = {
     cal_next: "다음 달",
     cal_aria: "달력",
     empty_list: "할 일이 없어요",
+    progress_by_date: "날짜별 완료",
     repeat_hint: "이 일정의 날짜({date})를 기준으로 반복합니다.",
     export_alert_dates: "시작 날짜와 종료 날짜를 모두 선택해 주세요.",
     export_alert_order: "시작 날짜가 종료 날짜보다 늦을 수 없습니다.",
@@ -1606,6 +1651,7 @@ const I18N = {
     cal_next: "Next month",
     cal_aria: "Calendar",
     empty_list: "No tasks",
+    progress_by_date: "Done by date",
     repeat_hint: "Repeats are based on this task's date ({date}).",
     export_alert_dates: "Please choose both start and end dates.",
     export_alert_order: "Start date cannot be after end date.",
@@ -1745,6 +1791,7 @@ const I18N = {
     cal_next: "次の月",
     cal_aria: "カレンダー",
     empty_list: "タスクがありません",
+    progress_by_date: "日ごとの完了",
     repeat_hint: "この予定の日付（{date}）を基準に繰り返します。",
     export_alert_dates: "開始日と終了日の両方を選んでください。",
     export_alert_order: "開始日を終了日より後にできません。",
@@ -1884,6 +1931,7 @@ const I18N = {
     cal_next: "下个月",
     cal_aria: "日历",
     empty_list: "没有任务",
+    progress_by_date: "按日期的完成情况",
     repeat_hint: "以该日程的日期（{date}）为基准进行重复。",
     export_alert_dates: "请选择开始和结束日期。",
     export_alert_order: "开始日期不能晚于结束日期。",
@@ -2506,6 +2554,7 @@ const I18N = {
       pendingMoveTaskId: null,
       pendingRepeatEditTaskId: null,
       pendingRepeatEditOccurrence: null,
+      progressExpandedTaskKey: null,
       repeatEditorDraftMode: "none",
       repeatEditorDraftEndMode: "never",
       pendingDeleteOccurrence: null,
@@ -3081,6 +3130,7 @@ const I18N = {
     function openRepeatEditor(taskId, occurrenceIso) {
       const task = state.tasks.find((t) => t.id === taskId);
       if (!task || (normalizeRepeat(task.repeat) === "none" && task.done)) return;
+      state.progressExpandedTaskKey = null;
       closeDeleteOccurrenceModal();
       closeSettingsModal();
       state.pendingMoveTaskId = null;
@@ -3105,7 +3155,12 @@ const I18N = {
       const id = state.pendingRepeatEditTaskId;
       if (!id) return;
       const task = state.tasks.find((t) => t.id === id);
-      if (!task || task.done) {
+      if (!task) {
+        closeRepeatEditor();
+        renderTasks();
+        return;
+      }
+      if (normalizeRepeat(task.repeat) === "none" && task.done) {
         closeRepeatEditor();
         renderTasks();
         return;
@@ -3220,6 +3275,7 @@ const I18N = {
         closeRepeatEditor();
         closeDeleteOccurrenceModal();
         closeSettingsModal();
+        state.progressExpandedTaskKey = null;
         if (state.pendingMoveTaskId) {
           const task = state.tasks.find((t) => t.id === state.pendingMoveTaskId);
           if (task && !task.done) {
@@ -3316,6 +3372,61 @@ const I18N = {
       }, 2000);
     }
 
+    function formatShortProgressDate(iso) {
+      const d = parseYMD(iso);
+      return new Intl.DateTimeFormat(localeTag(), {
+        month: "numeric",
+        day: "numeric",
+        weekday: "short",
+      }).format(d);
+    }
+
+    /** Dates where this task occurs around selected calendar day, with done state per occurrence. */
+    function occurrenceDatesInWindow(task, centerIso, pastDays = 21, futureDays = 56) {
+      const rep = normalizeRepeat(task.repeat);
+      if (rep === "none") {
+        return [{ iso: task.date, done: occurrenceDone(task, task.date) }];
+      }
+      const anchorMs = parseYMD(task.date).getTime();
+      const center = parseYMD(centerIso);
+      const start = new Date(center);
+      start.setDate(start.getDate() - pastDays);
+      const end = new Date(center);
+      end.setDate(end.getDate() + futureDays);
+      const cur = new Date(Math.max(start.getTime(), anchorMs));
+      const endMs = end.getTime();
+      const out = [];
+      const walk = new Date(cur);
+      while (walk.getTime() <= endMs) {
+        const iso = ymd(walk.getFullYear(), walk.getMonth(), walk.getDate());
+        if (shouldShowOccurrence(task, iso)) {
+          out.push({ iso, done: occurrenceDone(task, iso) });
+        }
+        walk.setDate(walk.getDate() + 1);
+      }
+      return out;
+    }
+
+    function buildTaskProgressPanel(task) {
+      const panel = document.createElement("div");
+      panel.className = "task-progress-panel";
+      const title = document.createElement("p");
+      title.className = "task-progress-title";
+      title.textContent = tr("progress_by_date");
+      panel.appendChild(title);
+      const chipsWrap = document.createElement("div");
+      chipsWrap.className = "task-progress-chips";
+      occurrenceDatesInWindow(task, state.selectedDate).forEach(({ iso, done: isDone }) => {
+        const chip = document.createElement("span");
+        chip.className = "task-progress-chip" + (isDone ? " task-progress-chip--done" : "");
+        chip.textContent = formatShortProgressDate(iso);
+        chip.title = `${iso}${isDone ? " ✓" : ""}`;
+        chipsWrap.appendChild(chip);
+      });
+      panel.appendChild(chipsWrap);
+      return panel;
+    }
+
     function sortVirtualTaskRows(rows) {
       return [...rows].sort((a, b) => {
         const da = occurrenceDone(a.task, a.occurrenceIso);
@@ -3384,9 +3495,16 @@ const I18N = {
       text.title = task.text;
       main.appendChild(text);
 
-      const anchorActions = rep === "none" || occurrenceIso === task.date;
+      const progressKey = `${task.id}:${occurrenceIso}`;
+      main.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        state.progressExpandedTaskKey = state.progressExpandedTaskKey === progressKey ? null : progressKey;
+        renderTasks();
+      });
 
-      if (!done && anchorActions) {
+      const showActions = rep === "none" ? !done : true;
+
+      if (showActions) {
         const actions = document.createElement("div");
         actions.className = "task-actions";
         if (state.pendingMoveTaskId === task.id) {
@@ -3432,9 +3550,17 @@ const I18N = {
       del.className = "task-del";
       del.setAttribute("aria-label", rep === "none" ? tr("del_task_aria") : tr("del_series_aria"));
       del.textContent = "×";
-      del.addEventListener("click", () => deleteOccurrence(task.id, occurrenceIso));
+      del.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        deleteOccurrence(task.id, occurrenceIso);
+      });
 
       row.appendChild(del);
+
+      if (state.progressExpandedTaskKey === progressKey) {
+        row.appendChild(buildTaskProgressPanel(task));
+      }
+
       return row;
     }
 
