@@ -3912,23 +3912,12 @@ const I18N = {
       finishBulkPurge();
     }
 
-    function addTask() {
-      abortSpeechRecognition();
-      const text = el.taskInput.value.trim();
-      if (!text) {
-        el.taskInput.focus();
-        return;
-      }
-      if (state.tasks.some((t) => t.text.trim() === text)) {
-        if (!confirm(tr("confirm_dup_task"))) {
-          el.taskInput.focus();
-          return;
-        }
-      }
+    function makeNewTask(text) {
+      const trimmed = text.trim().slice(0, 200);
       const ds = parseYMD(state.selectedDate);
-      const task = {
+      return {
         id: uuid(),
-        text,
+        text: trimmed,
         date: state.selectedDate,
         done: false,
         repeat: "none",
@@ -3943,12 +3932,52 @@ const I18N = {
         repeat_skip_dates: [],
         created_at: new Date().toISOString(),
       };
-      state.tasks.push(task);
+    }
+
+    function addTask() {
+      abortSpeechRecognition();
+      const text = el.taskInput.value.trim().slice(0, 200);
+      if (!text) {
+        el.taskInput.focus();
+        return;
+      }
+      if (state.tasks.some((t) => t.text.trim() === text)) {
+        if (!confirm(tr("confirm_dup_task"))) {
+          el.taskInput.focus();
+          return;
+        }
+      }
+      state.tasks.push(makeNewTask(text));
       saveTasks(state.tasks);
       el.taskInput.value = "";
       el.taskInput.focus();
       renderCalendar();
       renderTasks();
+    }
+
+    function splitPasteIntoTaskLines(clip) {
+      return clip
+        .split(/\r?\n/)
+        .map((s) => s.trim().slice(0, 200))
+        .filter(Boolean);
+    }
+
+    function addTasksFromPasteLines(lines) {
+      let added = 0;
+      for (const line of lines) {
+        if (state.tasks.some((t) => t.text.trim() === line)) {
+          if (!confirm(tr("confirm_dup_task"))) continue;
+        }
+        state.tasks.push(makeNewTask(line));
+        added++;
+      }
+      if (added) {
+        saveTasks(state.tasks);
+        renderCalendar();
+        renderTasks();
+      }
+      el.taskInput.value = "";
+      el.taskInput.focus();
     }
 
     el.calPrev.addEventListener("click", () => {
@@ -4062,6 +4091,16 @@ const I18N = {
     } catch {
       el.footerUpdated.textContent = "—";
     }
+
+    el.taskInput.addEventListener("paste", (e) => {
+      const clip = e.clipboardData?.getData("text/plain");
+      if (clip == null || clip === "") return;
+      const lines = splitPasteIntoTaskLines(clip);
+      if (lines.length <= 1) return;
+      e.preventDefault();
+      abortSpeechRecognition();
+      addTasksFromPasteLines(lines);
+    });
 
     el.taskInput.addEventListener("compositionstart", () => {
       el.taskInput.dataset.imeOpen = "1";
