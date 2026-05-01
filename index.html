@@ -441,6 +441,62 @@
       filter: brightness(1.05);
     }
 
+    .input-row button.voice-btn {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .input-row button.voice-btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      filter: brightness(1.02);
+    }
+
+    .input-row button.voice-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.25);
+    }
+
+    .input-row button.voice-btn:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+    .input-row button.voice-btn.voice-btn--listening {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      animation: voice-pulse 1.25s ease-in-out infinite;
+    }
+
+    .voice-btn__icon {
+      display: block;
+      pointer-events: none;
+    }
+
+    @keyframes voice-pulse {
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.04);
+        opacity: 0.92;
+      }
+    }
+
     .task-main {
       flex: 1;
       min-width: 0;
@@ -1192,6 +1248,14 @@
           autocomplete="off"
           aria-label="할 일 입력"
         />
+        <button type="button" class="voice-btn" id="voiceInputBtn" aria-pressed="false" aria-label="" title="">
+          <svg class="voice-btn__icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"
+            />
+          </svg>
+        </button>
         <button type="button" class="add" id="addBtn">추가</button>
       </div>
 
@@ -1465,6 +1529,13 @@ const I18N = {
     add_btn: "추가",
     task_ph: "할 일을 입력하고 Enter",
     task_aria: "할 일 입력",
+    voice_aria_start: "음성으로 할 일 입력",
+    voice_aria_stop: "음성 입력 중지",
+    voice_title_start: "말하면 입력 칸에 텍스트가 들어갑니다",
+    voice_title_stop: "듣기 중지",
+    voice_unsupported: "이 브라우저에서는 음성 입력을 지원하지 않습니다.",
+    voice_unsupported_short: "음성 입력 미지원",
+    voice_denied: "마이크 사용을 허용해야 음성 입력을 쓸 수 있어요.",
     today_banner: "오늘 일정",
     move_hint: "달력에서 옮길 날짜를 눌러 주세요",
     move_cancel: "취소",
@@ -1606,6 +1677,13 @@ const I18N = {
     add_btn: "Add",
     task_ph: "Type a task and press Enter",
     task_aria: "Task input",
+    voice_aria_start: "Add task by voice",
+    voice_aria_stop: "Stop voice input",
+    voice_title_start: "Speak to fill the task field",
+    voice_title_stop: "Stop listening",
+    voice_unsupported: "Voice input is not supported in this browser.",
+    voice_unsupported_short: "Voice input unavailable",
+    voice_denied: "Allow microphone access to use voice input.",
     today_banner: "Today",
     move_hint: "Tap a date on the calendar to move here",
     move_cancel: "Cancel",
@@ -1746,6 +1824,13 @@ const I18N = {
     add_btn: "追加",
     task_ph: "タスクを入力して Enter",
     task_aria: "タスク入力",
+    voice_aria_start: "音声でタスクを入力",
+    voice_aria_stop: "音声入力を停止",
+    voice_title_start: "話すと入力欄に反映されます",
+    voice_title_stop: "聞き取りを停止",
+    voice_unsupported: "このブラウザでは音声入力に対応していません。",
+    voice_unsupported_short: "音声入力不可",
+    voice_denied: "マイクの許可が必要です。",
     today_banner: "今日の予定",
     move_hint: "カレンダーで移動先の日付をタップしてください",
     move_cancel: "キャンセル",
@@ -1886,6 +1971,13 @@ const I18N = {
     add_btn: "添加",
     task_ph: "输入任务后按 Enter",
     task_aria: "任务输入",
+    voice_aria_start: "语音输入任务",
+    voice_aria_stop: "停止语音输入",
+    voice_title_start: "说话即可填入输入框",
+    voice_title_stop: "停止聆听",
+    voice_unsupported: "此浏览器不支持语音输入。",
+    voice_unsupported_short: "不支持语音输入",
+    voice_denied: "请允许使用麦克风以进行语音输入。",
     today_banner: "今日日程",
     move_hint: "请在日历上点选要移动的日期",
     move_cancel: "取消",
@@ -2566,6 +2658,7 @@ const I18N = {
       calPrev: document.getElementById("calPrev"),
       calNext: document.getElementById("calNext"),
       taskInput: document.getElementById("taskInput"),
+      voiceInputBtn: document.getElementById("voiceInputBtn"),
       addBtn: document.getElementById("addBtn"),
       taskList: document.getElementById("taskList"),
       repeatEditorDock: document.getElementById("repeatEditorDock"),
@@ -2648,6 +2741,111 @@ const I18N = {
       footerLblDeveloper: document.getElementById("footerLblDeveloper"),
     };
 
+    let speechRecognition = null;
+    let speechListening = false;
+    let speechSessionPrefix = "";
+
+    function speechRecognitionCtor() {
+      return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+    }
+
+    function updateVoiceInputButton() {
+      if (!el.voiceInputBtn) return;
+      const Ctor = speechRecognitionCtor();
+      el.voiceInputBtn.disabled = !Ctor;
+      el.voiceInputBtn.classList.toggle("voice-btn--listening", speechListening && !!Ctor);
+      el.voiceInputBtn.setAttribute("aria-pressed", speechListening ? "true" : "false");
+      if (!Ctor) {
+        el.voiceInputBtn.setAttribute("aria-label", tr("voice_unsupported"));
+        el.voiceInputBtn.title = tr("voice_unsupported_short");
+        return;
+      }
+      if (speechListening) {
+        el.voiceInputBtn.setAttribute("aria-label", tr("voice_aria_stop"));
+        el.voiceInputBtn.title = tr("voice_title_stop");
+      } else {
+        el.voiceInputBtn.setAttribute("aria-label", tr("voice_aria_start"));
+        el.voiceInputBtn.title = tr("voice_title_start");
+      }
+    }
+
+    function ensureSpeechRecognition() {
+      const Ctor = speechRecognitionCtor();
+      if (!Ctor || speechRecognition) return speechRecognition;
+      const rec = new Ctor();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+      rec.onstart = () => {
+        speechListening = true;
+        speechSessionPrefix = el.taskInput.value.trimEnd();
+        updateVoiceInputButton();
+      };
+      rec.onend = () => {
+        speechListening = false;
+        updateVoiceInputButton();
+      };
+      rec.onresult = (e) => {
+        let finals = "";
+        let interim = "";
+        for (let i = 0; i < e.results.length; i++) {
+          const r = e.results[i];
+          const t = r[0].transcript;
+          if (r.isFinal) finals += t;
+          else interim += t;
+        }
+        const chunk = (finals + interim).trim();
+        const p = speechSessionPrefix;
+        let next = p ? (chunk ? `${p} ${chunk}` : p) : chunk;
+        if (next.length > 200) next = next.slice(0, 200);
+        el.taskInput.value = next;
+      };
+      rec.onerror = (ev) => {
+        speechListening = false;
+        updateVoiceInputButton();
+        if (ev.error === "not-allowed") alert(tr("voice_denied"));
+      };
+      speechRecognition = rec;
+      return speechRecognition;
+    }
+
+    function abortSpeechRecognition() {
+      if (!speechRecognition) return;
+      try {
+        speechRecognition.abort();
+      } catch {
+        try {
+          speechRecognition.stop();
+        } catch {
+          /* noop */
+        }
+      }
+      speechListening = false;
+      updateVoiceInputButton();
+    }
+
+    function toggleSpeechRecognition() {
+      const Ctor = speechRecognitionCtor();
+      if (!Ctor) return;
+      ensureSpeechRecognition();
+      if (!speechRecognition) return;
+      if (speechListening) {
+        try {
+          speechRecognition.stop();
+        } catch {
+          /* noop */
+        }
+        return;
+      }
+      speechRecognition.lang = localeTag();
+      try {
+        speechRecognition.start();
+      } catch {
+        speechListening = false;
+        updateVoiceInputButton();
+      }
+    }
+
     function syncRepeatUnitSelectOptions() {
       const keys = ["unit_day", "unit_week", "unit_month", "unit_year"];
       [...el.repeatEditorUnit.options].forEach((opt, i) => {
@@ -2693,6 +2891,7 @@ const I18N = {
         el.settingsToggleLang.setAttribute("aria-expanded", "false");
         return;
       }
+      abortSpeechRecognition();
       appLang = next;
       localStorage.setItem(LANG_KEY, appLang);
       document.documentElement.lang = appLang === "zh" ? "zh-CN" : appLang;
@@ -2775,6 +2974,7 @@ const I18N = {
         const tk = state.tasks.find((t) => t.id === rid);
         if (tk) fillRepeatEditorForm(tk);
       }
+      updateVoiceInputButton();
     }
 
     function datesWithTasks(calYear, calMonth) {
@@ -3713,6 +3913,7 @@ const I18N = {
     }
 
     function addTask() {
+      abortSpeechRecognition();
       const text = el.taskInput.value.trim();
       if (!text) {
         el.taskInput.focus();
@@ -3779,6 +3980,8 @@ const I18N = {
     });
 
     el.addBtn.addEventListener("click", addTask);
+
+    el.voiceInputBtn.addEventListener("click", () => toggleSpeechRecognition());
 
     el.moveHintCancel.addEventListener("click", () => {
       state.pendingMoveTaskId = null;
